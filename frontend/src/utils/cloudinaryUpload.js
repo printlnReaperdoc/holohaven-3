@@ -15,7 +15,7 @@ const CLOUDINARY_UPLOAD_PRESET = 'holohaven_upload'; // Unsigned upload preset n
 export const imageUriToBlob = async (imageUri) => {
   try {
     console.log('🔄 Converting image URI to blob...');
-    console.log('🔄 URI type:', imageUri.substring(0, 30) + '...');
+    console.log('🔄 URI type:', imageUri ? imageUri.substring(0, 30) + '...' : 'undefined');
     
     const response = await fetch(imageUri);
     
@@ -55,7 +55,7 @@ export const imageUriToBlob = async (imageUri) => {
 export const uploadToCloudinary = async (imageUri, folder = 'holohaven', publicId = null, retryCount = 0) => {
   try {
     console.log('📤 Cloudinary Upload: Starting upload for folder:', folder);
-    console.log('📤 Image URI:', imageUri.substring(0, 50) + '...');
+    console.log('📤 Image URI:', imageUri ? imageUri.substring(0, 50) + '...' : 'undefined');
     console.log('📤 Attempt:', retryCount + 1, 'of 3');
 
     // Create FormData with file-like object (React Native compatible)
@@ -201,7 +201,7 @@ export const uploadToCloudinary = async (imageUri, folder = 'holohaven', publicI
     console.error('❌ Cloudinary Upload Error:', {
       message: error.message,
       name: error.name,
-      uri: imageUri?.substring(0, 50),
+      uri: imageUri ? imageUri.substring(0, 50) : 'undefined',
       folder,
       attempt: retryCount + 1,
     });

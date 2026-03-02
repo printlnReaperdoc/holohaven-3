@@ -44,15 +44,8 @@ const RegisterScreen = ({ navigation }) => {
 
       // If user selected an image, upload it after successful registration
       if (imageUri) {
-        const formData = new FormData();
-        formData.append('profilePicture', {
-          uri: imageUri,
-          type: 'image/jpeg',
-          name: 'profile.jpg',
-        });
-
         try {
-          await dispatch(uploadProfilePicture(formData)).unwrap();
+          await dispatch(uploadProfilePicture(imageUri)).unwrap();
         } catch (err) {
           console.log('Upload failed', err);
         }

@@ -118,24 +118,53 @@ const ProductDetailScreen = ({ route, navigation }) => {
     setShowReviewForm(true);
   };
 
+  const ReviewerAvatar = ({ user }) => {
+    const [imageError, setImageError] = useState(false);
+    const profilePicUri = user?.profilePicture;
+    
+    if (profilePicUri && !imageError) {
+      return (
+        <Image 
+          source={{ uri: profilePicUri }} 
+          style={styles.reviewerAvatar}
+          onError={() => setImageError(true)}
+        />
+      );
+    }
+    
+    return (
+      <View style={styles.reviewerAvatarPlaceholder}>
+        <Text style={styles.avatarPlaceholderText}>
+          {(user?.username || 'U')[0].toUpperCase()}
+        </Text>
+      </View>
+    );
+  };
+
   const renderReview = ({ item }) => {
     const isOwnReview = (item.userId?._id || item.userId) === user?._id;
+    
     return (
       <View style={styles.reviewCard}>
         <View style={styles.reviewHeader}>
-          <Text style={styles.reviewerName}>
-            {item.userId?.username || 'User'}
-            {item.isVerified ? ' ✅' : ''}
-          </Text>
+          <View style={styles.reviewerInfo}>
+            <ReviewerAvatar user={item.userId} />
+            <View style={styles.reviewerDetails}>
+              <Text style={styles.reviewerName}>
+                {item.userId?.username || 'User'}
+                {item.isVerified ? ' ✅' : ''}
+              </Text>
+              <Text style={styles.reviewDate}>
+                {new Date(item.createdAt).toLocaleDateString()}
+              </Text>
+            </View>
+          </View>
           <Text style={styles.rating}>{'⭐'.repeat(item.rating)}</Text>
         </View>
         {item.comment && (
           <Text style={styles.reviewComment}>{item.comment}</Text>
         )}
         <View style={styles.reviewFooter}>
-          <Text style={styles.reviewDate}>
-            {new Date(item.createdAt).toLocaleDateString()}
-          </Text>
           {isOwnReview && (
             <TouchableOpacity onPress={() => startEditReview(item)}>
               <Text style={styles.editReviewBtn}>Edit</Text>
@@ -503,18 +532,49 @@ const styles = StyleSheet.create({
   reviewHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 8,
+  },
+  reviewerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  reviewerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+    backgroundColor: '#E5E7EB',
+  },
+  reviewerAvatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+    backgroundColor: '#8B5CF6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarPlaceholderText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  reviewerDetails: {
+    flex: 1,
   },
   reviewerName: {
     fontWeight: '600',
     color: '#1F2937',
+    marginBottom: 2,
   },
   reviewComment: {
     fontSize: 13,
     color: '#4B5563',
     lineHeight: 18,
     marginBottom: 6,
+    marginLeft: 50,
   },
   reviewDate: {
     fontSize: 11,
@@ -522,7 +582,7 @@ const styles = StyleSheet.create({
   },
   reviewFooter: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   editReviewBtn: {
