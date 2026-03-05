@@ -265,6 +265,28 @@ router.post("/register-token", authMiddleware, async (req, res) => {
       console.log(`[NOTIFICATION] Updated push token lastUsedAt for user ${user.username}`);
     }
 
+    // Deliver any unread notifications as push to this device
+    try {
+      const unreadNotifications = await Notification.find({
+        userId: req.userId,
+        read: false,
+      }).sort({ createdAt: -1 }).limit(20);
+
+      if (unreadNotifications.length > 0) {
+        console.log(`[NOTIFICATION] Sending ${unreadNotifications.length} pending notifications to user ${user.username}`);
+        for (const notif of unreadNotifications) {
+          await sendNotification(token, {
+            title: notif.title,
+            body: notif.body,
+            data: notif.data || {},
+          });
+        }
+      }
+    } catch (pushError) {
+      console.error("[NOTIFICATION] Error sending pending notifications:", pushError.message);
+      // Don't fail the token registration if push delivery fails
+    }
+
     res.json({ message: "Token registered successfully" });
   } catch (error) {
     console.error("[NOTIFICATION] Error registering token:", error.message);

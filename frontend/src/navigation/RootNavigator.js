@@ -10,6 +10,7 @@ export const navigationRef = createRef();
 
 import { verifyToken } from '../redux/slices/authSlice';
 import { registerForPush, setupNotificationResponseListener } from '../notifications/push';
+import { registerPushToken, fetchNotifications } from '../redux/slices/notificationsSlice';
 import { loadLocalCart, fetchCart } from '../redux/slices/cartSlice';
 import { initializeSQLite } from '../utils/sqliteDb';
 import CustomDrawer from './CustomDrawer';
@@ -396,6 +397,7 @@ const RootNavigator = () => {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
 
+  // Bootstrap: verify token & load cart on app start
   useEffect(() => {
     const bootstrapAsync = async () => {
       try {
@@ -408,9 +410,9 @@ const RootNavigator = () => {
           // Load cart from SQLite first (fast, offline), then sync with server
           dispatch(loadLocalCart());
           dispatch(fetchCart());
+        } else {
+          console.log('⏭️ Skipping auth bootstrap - no JWT token');
         }
-        // Register for push notifications
-        await registerForPush();
       } catch (error) {
         console.log('Auth check failed:', error);
       } finally {
@@ -426,6 +428,29 @@ const RootNavigator = () => {
       if (notifSubscription) notifSubscription.remove();
     };
   }, [dispatch]);
+
+  // When user becomes authenticated, register push token & fetch pending notifications
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const onAuthenticated = async () => {
+      try {
+        // Register push token so backend knows this device
+        const pushToken = await registerForPush();
+        if (pushToken) {
+          // Also register via notifications route (triggers pending notification delivery)
+          dispatch(registerPushToken(pushToken));
+        }
+        // Fetch any pending/unread notifications
+        dispatch(fetchNotifications());
+        console.log('🔔 Push token registered & notifications fetched after login');
+      } catch (error) {
+        console.log('Push/notification setup after login failed:', error);
+      }
+    };
+
+    onAuthenticated();
+  }, [isAuthenticated, dispatch]);
 
   if (loading) {
     return <SplashScreen />;

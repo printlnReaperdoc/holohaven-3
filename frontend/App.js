@@ -9,10 +9,9 @@ import store from "./src/redux/store";
 import RootNavigator, { navigationRef } from "./src/navigation/RootNavigator";
 import { initializeSQLite } from "./src/utils/sqliteDb";
 import {
-  registerForPushNotificationsAsync,
   setupNotificationListeners,
 } from "./src/notifications/notificationUtils";
-import { registerPushToken, fetchNotifications } from "./src/redux/slices/notificationsSlice";
+import { fetchNotifications } from "./src/redux/slices/notificationsSlice";
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -21,13 +20,8 @@ function AppContent() {
     // Initialize SQLite database on app launch
     initializeSQLite();
 
-    // Register for push notifications
-    registerForPushNotificationsAsync().then((token) => {
-      if (token) {
-        console.log('Registering push token:', token);
-        dispatch(registerPushToken(token));
-      }
-    });
+    // Push token registration is handled in RootNavigator after login.
+    // Here we only set up listeners for incoming notifications while the app is open.
 
     // Setup notification listeners
     const unsubscribe = setupNotificationListeners((notification) => {
