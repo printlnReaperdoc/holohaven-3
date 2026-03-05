@@ -9,8 +9,6 @@ import {
   FIREBASE_MESSAGING_SENDER_ID,
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
-  FIREBASE_WEB_CLIENT_ID,
-  ANDROID_CLIENT_ID,
 } from '@env';
 
 // --- Initialize Firebase ---

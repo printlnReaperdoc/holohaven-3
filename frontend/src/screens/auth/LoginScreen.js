@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   TextInput,
@@ -11,25 +11,23 @@ import {
   Image,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { FIREBASE_WEB_CLIENT_ID, ANDROID_CLIENT_ID } from '@env';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import { WEB_CLIENT_ID } from '@env';
 import { login, googleLogin } from '../../redux/slices/authSlice';
 
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: WEB_CLIENT_ID,
+  offlineAccess: false,
+});
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
-
-  // Google OAuth request (request access token to fetch userinfo)
-  const [, response, promptAsync] = Google.useAuthRequest({
-    clientId: FIREBASE_WEB_CLIENT_ID,
-    androidClientId: ANDROID_CLIENT_ID,
-    scopes: ['profile', 'email'],
-  });
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -61,51 +59,32 @@ const LoginScreen = ({ navigation }) => {
 
   const handleGoogleLogin = async () => {
     try {
-      await promptAsync();
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      const user = response?.data?.user;
+
+      if (!user) {
+        Alert.alert('Google Login Error', 'No user data returned');
+        return;
+      }
+
+      await dispatch(
+        googleLogin({
+          googleId: user.id,
+          email: user.email,
+          fullName: user.name,
+          profilePicture: user.photo,
+        })
+      ).unwrap();
     } catch (err) {
+      if (err?.code === statusCodes.SIGN_IN_CANCELLED) {
+        // User cancelled the sign-in flow
+        return;
+      }
+      console.error('Google login error:', err);
       Alert.alert('Google Login Error', err?.message || 'Failed to login with Google');
     }
   };
-
-  // Handle Google OAuth response: fetch userinfo with access token and dispatch googleLogin
-  React.useEffect(() => {
-    let isActive = true;
-    const handleResponse = async () => {
-      if (response?.type === 'success') {
-        const accessToken = response.authentication?.accessToken || response.params?.access_token;
-        if (!accessToken) {
-          Alert.alert('Google Login Error', 'No access token returned');
-          return;
-        }
-
-        try {
-          const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          });
-          const profile = await res.json();
-
-          if (!isActive) return;
-
-          dispatch(
-            googleLogin({
-              googleId: profile.sub,
-              email: profile.email,
-              fullName: profile.name,
-              profilePicture: profile.picture,
-            })
-          ).unwrap();
-        } catch (err) {
-          Alert.alert('Google Login Error', err?.message || 'Failed to fetch Google profile');
-          console.error('Google profile fetch error:', err);
-        }
-      }
-    };
-
-    handleResponse();
-    return () => {
-      isActive = false;
-    };
-  }, [response]);
 
   return (
     <ScrollView style={styles.container}>
