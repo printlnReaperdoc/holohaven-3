@@ -58,11 +58,36 @@ export const deleteReview = createAsyncThunk(
   }
 );
 
+export const fetchAllReviews = createAsyncThunk(
+  'reviews/fetchAllReviews',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get('/reviews/admin/all');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { error: error.message });
+    }
+  }
+);
+
+export const adminDeleteReview = createAsyncThunk(
+  'reviews/adminDeleteReview',
+  async (reviewId, { rejectWithValue }) => {
+    try {
+      await axiosInstance.delete(`/reviews/admin/${reviewId}`);
+      return reviewId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { error: error.message });
+    }
+  }
+);
+
 const reviewsSlice = createSlice({
   name: 'reviews',
   initialState: {
     productReviews: [],
     userReviews: [],
+    allReviews: [],
     loading: false,
     error: null,
     success: false,
@@ -156,6 +181,33 @@ const reviewsSlice = createSlice({
         state.success = true;
       })
       .addCase(deleteReview.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(fetchAllReviews.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllReviews.fulfilled, (state, action) => {
+        state.loading = false;
+        state.allReviews = action.payload;
+      })
+      .addCase(fetchAllReviews.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      })
+      .addCase(adminDeleteReview.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(adminDeleteReview.fulfilled, (state, action) => {
+        state.loading = false;
+        state.allReviews = state.allReviews.filter(
+          (r) => r._id !== action.payload
+        );
+        state.success = true;
+      })
+      .addCase(adminDeleteReview.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || action.error.message;
       });

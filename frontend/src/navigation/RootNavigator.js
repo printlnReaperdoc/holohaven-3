@@ -31,6 +31,7 @@ import PromotionsScreen from '../screens/promotions/PromotionsScreen';
 import PromotionDetailScreen from '../screens/promotions/PromotionDetailScreen';
 import AdminProductsScreen from '../screens/admin/AdminProductsScreen';
 import AdminTransactionsScreen from '../screens/admin/AdminTransactionsScreen';
+import AdminReviewsScreen from '../screens/admin/AdminReviewsScreen';
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 
 const Stack = createStackNavigator();
@@ -308,6 +309,32 @@ const AdminTransactionsStack = () => (
   </Stack.Navigator>
 );
 
+// Admin Reviews Stack
+const AdminReviewsStack = () => (
+  <Stack.Navigator
+    screenOptions={({ navigation }) => ({
+      headerShown: true,
+      headerTintColor: '#FFFFFF',
+      headerStyle: { backgroundColor: '#00FFFF' },
+      headerTitleStyle: { fontWeight: 'bold', color: '#FFFFFF', fontFamily: 'CustomFont' },
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => navigation.toggleDrawer()}
+          style={{ paddingLeft: 16 }}
+        >
+          <Text style={{ fontSize: 24, color: '#FFFFFF', fontFamily: 'CustomFont' }}>☰</Text>
+        </TouchableOpacity>
+      ),
+    })}
+  >
+    <Stack.Screen
+      name="AdminReviewsTab"
+      component={AdminReviewsScreen}
+      options={{ title: 'Review Management' }}
+    />
+  </Stack.Navigator>
+);
+
 
 // Main App Stack (with Drawer)
 const MainAppStack = () => {
@@ -333,6 +360,11 @@ const MainAppStack = () => {
           name="AdminTransactionsDrawer"
           component={AdminTransactionsStack}
           options={{ drawerLabel: 'Transactions' }}
+        />
+        <Drawer.Screen
+          name="AdminReviewsDrawer"
+          component={AdminReviewsStack}
+          options={{ drawerLabel: 'Reviews' }}
         />
         <Drawer.Screen
           name="ProfileDrawer"

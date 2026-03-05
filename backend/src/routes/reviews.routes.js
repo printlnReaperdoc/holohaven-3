@@ -3,9 +3,47 @@ import Review from "../models/Review.js";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import User from "../models/User.js";
-import { authMiddleware } from "../middleware/auth.middleware.js";
+import { authMiddleware, adminMiddleware } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
+
+// GET all reviews (admin only)
+router.get("/admin/all", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const reviews = await Review.find()
+      .populate("userId", "username email profilePicture")
+      .populate("productId", "name image")
+      .sort({ createdAt: -1 });
+
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE any review (admin only)
+router.delete("/admin/:id", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.id);
+    if (!review) return res.sendStatus(404);
+
+    const productId = review.productId;
+
+    await Review.deleteOne({ _id: req.params.id });
+
+    // Remove from user's profile
+    await User.findByIdAndUpdate(review.userId, {
+      $pull: { reviewsPosted: req.params.id },
+    });
+
+    // Update product rating
+    await updateProductRating(productId);
+
+    res.sendStatus(204);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // GET reviews for a product
 router.get("/product/:productId", async (req, res) => {
