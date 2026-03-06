@@ -32,6 +32,7 @@ import PromotionDetailScreen from '../screens/promotions/PromotionDetailScreen';
 import AdminProductsScreen from '../screens/admin/AdminProductsScreen';
 import AdminTransactionsScreen from '../screens/admin/AdminTransactionsScreen';
 import AdminReviewsScreen from '../screens/admin/AdminReviewsScreen';
+import SalesAnalyticsScreen from '../screens/admin/SalesAnalyticsScreen';
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 
 const Stack = createStackNavigator();
@@ -336,6 +337,32 @@ const AdminReviewsStack = () => (
 );
 
 
+// Admin Sales Analytics Stack
+const AdminAnalyticsStack = () => (
+  <Stack.Navigator
+    screenOptions={({ navigation }) => ({
+      headerShown: true,
+      headerTintColor: '#FFFFFF',
+      headerStyle: { backgroundColor: '#00FFFF' },
+      headerTitleStyle: { fontWeight: 'bold', color: '#FFFFFF', fontFamily: 'CustomFont' },
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => navigation.toggleDrawer()}
+          style={{ paddingLeft: 16 }}
+        >
+          <Text style={{ fontSize: 24, color: '#FFFFFF', fontFamily: 'CustomFont' }}>☰</Text>
+        </TouchableOpacity>
+      ),
+    })}
+  >
+    <Stack.Screen
+      name="AdminAnalyticsTab"
+      component={SalesAnalyticsScreen}
+      options={{ title: 'Sales Analytics' }}
+    />
+  </Stack.Navigator>
+);
+
 // Main App Stack (with Drawer)
 const MainAppStack = () => {
   const { user } = useSelector((state) => state.auth);
@@ -365,6 +392,11 @@ const MainAppStack = () => {
           name="AdminReviewsDrawer"
           component={AdminReviewsStack}
           options={{ drawerLabel: 'Reviews' }}
+        />
+        <Drawer.Screen
+          name="AdminAnalyticsDrawer"
+          component={AdminAnalyticsStack}
+          options={{ drawerLabel: 'Sales Analytics' }}
         />
         <Drawer.Screen
           name="ProfileDrawer"
