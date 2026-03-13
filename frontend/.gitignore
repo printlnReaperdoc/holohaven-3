@@ -40,3 +40,5 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+holohaven-reactnative-firebase-adminsdk-fbsvc-d8dafd90a9.json
